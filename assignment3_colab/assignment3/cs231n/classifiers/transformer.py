@@ -89,8 +89,14 @@ class CaptioningTransformer(nn.Module):
         #     along with the tgt_mask. Project the output to scores per token      #
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+        captions_embed = self.embedding(captions)
+        captions_embed = self.positional_encoding(captions_embed)
 
-        pass
+        projected_features = self.visual_projection(features).unsqueeze(1)
+
+        tgt_mask = torch.tril(torch.ones(T, T, device=captions.device, dtype=torch.bool))
+        decoder_out = self.transformer(captions_embed, projected_features, tgt_mask=tgt_mask)
+        scores = self.output(decoder_out)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################

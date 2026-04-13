@@ -37,8 +37,10 @@ class PositionalEncoding(nn.Module):
         # less than 5 lines of code.                                               #
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-        pass
+        positions = torch.arange(max_len).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, embed_dim, 2) * (-math.log(10000.0) / embed_dim))
+        pe[0, :, 0::2] = torch.sin(positions * div_term)
+        pe[0, :, 1::2] = torch.cos(positions * div_term)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -69,8 +71,8 @@ class PositionalEncoding(nn.Module):
         # afterward. This should only take a few lines of code.                    #
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-        pass
+        output = x + self.pe[:, :S, :]
+        output = self.dropout(output)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -164,8 +166,22 @@ class MultiHeadAttention(nn.Module):
         #     function masked_fill may come in handy.                              #
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+        q = self.query(query).view(N, S, self.n_head, self.head_dim).transpose(1, 2)
+        k = self.key(key).view(N, T, self.n_head, self.head_dim).transpose(1, 2)
+        v = self.value(value).view(N, T, self.n_head, self.head_dim).transpose(1, 2)
 
-        pass
+        scores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(self.head_dim)
+
+        if attn_mask is not None:
+          mask = (attn_mask == 0).unsqueeze(0).unsqueeze(0)
+          scores = scores.masked_fill(mask, float("-inf"))
+
+        attn = F.softmax(scores, dim=-1)
+        attn = self.attn_drop(attn)
+
+        out = torch.matmul(attn, v)
+        out = out.transpose(1, 2).contiguous().view(N, S, E)
+        output = self.proj(out)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################

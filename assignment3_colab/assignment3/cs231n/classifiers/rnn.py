@@ -147,8 +147,26 @@ class CaptioningRNN:
         # in your implementation, if needed.                                       #
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+        h0, cache_proj = affine_forward(features, W_proj, b_proj)
+        word_embed, cache_embed = word_embedding_forward(captions_in, W_embed)
 
-        pass
+        if self.cell_type == "rnn":
+          h, cache_rnn = rnn_forward(word_embed, h0, Wx, Wh, b)
+        else:
+          h, cache_rnn = lstm_forward(word_embed, h0, Wx, Wh, b)
+
+        scores, cache_vocab = temporal_affine_forward(h, W_vocab, b_vocab)
+        loss, dscores = temporal_softmax_loss(scores, captions_out, mask)
+
+        dh, grads["W_vocab"], grads["b_vocab"] = temporal_affine_backward(dscores, cache_vocab)
+
+        if self.cell_type == "rnn":
+          dword_embed, dh0, grads["Wx"], grads["Wh"], grads["b"] = rnn_backward(dh, cache_rnn)
+        else:
+          dword_embed, dh0, grads["Wx"], grads["Wh"], grads["b"] = lstm_backward(dh, cache_rnn)
+
+        grads["W_embed"] = word_embedding_backward(dword_embed, cache_embed)
+        _, grads["W_proj"], grads["b_proj"] = affine_backward(dh0, cache_proj)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -215,8 +233,22 @@ class CaptioningRNN:
         # you are using an LSTM, initialize the first cell state to zeros.        #
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+        prev_h, _ = affine_forward(features, W_proj, b_proj)
+        prev_c = np.zeros_like(prev_h) if self.cell_type == "lstm" else None
+        current_word = np.full((N,), self._start, dtype=np.int32)
 
-        pass
+        for t in range(max_length):
+          word_vec = W_embed[current_word]
+          if self.cell_type == "rnn":
+            next_h, _ = rnn_step_forward(word_vec, prev_h, Wx, Wh, b)
+          else:
+            next_h, next_c, _ = lstm_step_forward(word_vec, prev_h, prev_c, Wx, Wh, b)
+            prev_c = next_c
+
+          scores, _ = affine_forward(next_h, W_vocab, b_vocab)
+          current_word = np.argmax(scores, axis=1)
+          captions[:, t] = current_word
+          prev_h = next_h
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
