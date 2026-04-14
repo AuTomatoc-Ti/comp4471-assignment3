@@ -4,3 +4,24 @@
 
 *.zip
 note.html
+assignment3_colab/assignment3/cs231n/datasets/imagenet_val_25.npz
+assignment3_colab/assignment3/cs231n/datasets/coco_captioning/train2014_images.txt
+assignment3_colab/assignment3/cs231n/datasets/coco_captioning/train2014_urls.txt
+assignment3_colab/assignment3/cs231n/datasets/coco_captioning/train2014_vgg16_fc7_pca.h5
+assignment3_colab/assignment3/cs231n/datasets/coco_captioning/train2014_vgg16_fc7.h5
+assignment3_colab/assignment3/cs231n/datasets/coco_captioning/val2014_images.txt
+assignment3_colab/assignment3/cs231n/datasets/coco_captioning/val2014_urls.txt
+assignment3_colab/assignment3/cs231n/datasets/coco_captioning/val2014_vgg16_fc7_pca.h5
+assignment3_colab/assignment3/cs231n/datasets/coco_captioning/val2014_vgg16_fc7.h5
+assignment3_colab/assignment3/cs231n/datasets/MNIST_data/MNIST/raw/t10k-images-idx3-ubyte
+assignment3_colab/assignment3/cs231n/datasets/MNIST_data/MNIST/raw/t10k-images-idx3-ubyte.gz
+assignment3_colab/assignment3/cs231n/datasets/MNIST_data/MNIST/raw/t10k-labels-idx1-ubyte
+assignment3_colab/assignment3/cs231n/datasets/MNIST_data/MNIST/raw/t10k-labels-idx1-ubyte.gz
+assignment3_colab/assignment3/cs231n/datasets/MNIST_data/MNIST/raw/train-images-idx3-ubyte
+assignment3_colab/assignment3/cs231n/datasets/MNIST_data/MNIST/raw/train-images-idx3-ubyte.gz
+assignment3_colab/assignment3/cs231n/datasets/MNIST_data/MNIST/raw/train-labels-idx1-ubyte
+assignment3_colab/assignment3/cs231n/datasets/MNIST_data/MNIST/raw/train-labels-idx1-ubyte.gz
+assignment3_colab/assignment3/cs231n/datasets/coco_captioning/coco2014_captions.h5
+assignment3_colab/assignment3/data/cifar-10-batches-py/
+assignment3_colab/assignment3/data/cifar-10-python.tar.gz
+assignment3_colab/assignment3/pretrained_model/*.pth

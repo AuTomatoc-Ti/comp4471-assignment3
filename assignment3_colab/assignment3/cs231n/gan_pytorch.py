@@ -11,6 +11,11 @@ import PIL
 
 NOISE_DIM = 96
 
+device = torch.device(
+    "cuda" if torch.cuda.is_available() else (
+        "mps" if hasattr(torch.backends, "mps") and torch.backends.mps.is_available() else "cpu"
+    )
+)
 dtype = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 
 def sample_noise(batch_size, dim, seed=None):
@@ -30,7 +35,7 @@ def sample_noise(batch_size, dim, seed=None):
 
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    return 2 * torch.rand(batch_size, dim) - 1
+    return 2 * torch.rand(batch_size, dim, device=device) - 1
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -268,7 +273,7 @@ def build_dc_generator(noise_dim=NOISE_DIM):
         nn.BatchNorm2d(64),
         nn.ConvTranspose2d(64, 1, kernel_size=4, stride=2, padding=1),
         nn.Tanh(),
-        Flatten(),
+        Flatten(), #output should be (batch_size, 784)
     )
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -299,10 +304,10 @@ def run_a_gan(D, G, D_solver, G_solver, discriminator_loss, generator_loss, load
             if len(x) != batch_size:
                 continue
             D_solver.zero_grad()
-            real_data = x.type(dtype)
-            logits_real = D(2* (real_data - 0.5)).type(dtype)
+            real_data = x.to(device)
+            logits_real = D(2 * (real_data - 0.5))
 
-            g_fake_seed = sample_noise(batch_size, noise_size).type(dtype)
+            g_fake_seed = sample_noise(batch_size, noise_size)
             fake_images = G(g_fake_seed).detach()
             logits_fake = D(fake_images.view(batch_size, 1, 28, 28))
 
@@ -311,7 +316,7 @@ def run_a_gan(D, G, D_solver, G_solver, discriminator_loss, generator_loss, load
             D_solver.step()
 
             G_solver.zero_grad()
-            g_fake_seed = sample_noise(batch_size, noise_size).type(dtype)
+            g_fake_seed = sample_noise(batch_size, noise_size)
             fake_images = G(g_fake_seed)
 
             gen_logits_fake = D(fake_images.view(batch_size, 1, 28, 28))

@@ -161,16 +161,10 @@ def simclr_loss_vectorized(out_left, out_right, tau, device='cuda'):
     # Step 1: Use sim_matrix to compute the denominator value for all augmented samples.
     # Hint: Compute e^{sim / tau} and store into exponential, which should have shape 2N x 2N.
     exponential = torch.exp(sim_matrix / tau)
-    
-    # This binary mask zeros out terms where k=i.
-    current_device = out.device
-    mask = (torch.ones_like(exponential, device=current_device) - torch.eye(2 * N, device=current_device)).bool()
-    
-    # We apply the binary mask.
-    exponential = exponential.masked_select(mask).view(2 * N, -1)  # [2*N, 2*N-1]
-    
-    # Hint: Compute the denominator values for all augmented samples. This should be a 2N x 1 vector.
-    denom = exponential.sum(dim=1, keepdim=True)
+
+    # Avoid masked ops for MPS backward compatibility by subtracting self-similarity.
+    diag_vals = torch.diagonal(exponential, 0).unsqueeze(1)
+    denom = exponential.sum(dim=1, keepdim=True) - diag_vals
 
     # Step 2: Compute similarity between positive pairs.
     # You can do this in two ways: 

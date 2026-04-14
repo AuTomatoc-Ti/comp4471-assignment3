@@ -6,6 +6,14 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 from .contrastive_loss import *
 
+
+def _resolve_device(device):
+    if isinstance(device, str) and device == 'cuda' and not torch.cuda.is_available():
+        if torch.backends.mps.is_available():
+            return 'mps'
+        return 'cpu'
+    return device
+
 def train(model, data_loader, train_optimizer, epoch, epochs, batch_size=32, temperature=0.5, device='cuda'):
     """Trains the model defined in ./model.py with one epoch.
     
@@ -22,6 +30,7 @@ def train(model, data_loader, train_optimizer, epoch, epochs, batch_size=32, tem
     Returns:
     - The average loss.
     """
+    device = _resolve_device(device)
     model.train()
     total_loss, total_num, train_bar = 0.0, 0, tqdm(data_loader)
     for data_pair in train_bar:
@@ -36,7 +45,8 @@ def train(model, data_loader, train_optimizer, epoch, epochs, batch_size=32, tem
         # Run x_i and x_j through the model to get out_left, out_right.              #
         # Then compute the loss using simclr_loss_vectorized.                        #
         ##############################################################################
-        out_left, out_right = model(x_i, x_j)
+        _, out_left = model(x_i)
+        _, out_right = model(x_j)
         loss = simclr_loss_vectorized(out_left, out_right, temperature, device=device)
         
         ##############################################################################
@@ -55,6 +65,7 @@ def train(model, data_loader, train_optimizer, epoch, epochs, batch_size=32, tem
 
 
 def train_val(model, data_loader, train_optimizer, epoch, epochs, device='cuda'):
+    device = _resolve_device(device)
     is_train = train_optimizer is not None
     model.train() if is_train else model.eval()
     loss_criterion = torch.nn.CrossEntropyLoss()
@@ -85,6 +96,7 @@ def train_val(model, data_loader, train_optimizer, epoch, epochs, device='cuda')
 
 
 def test(model, memory_data_loader, test_data_loader, epoch, epochs, c, temperature=0.5, k=200, device='cuda'):
+    device = _resolve_device(device)
     model.eval()
     total_top1, total_top5, total_num, feature_bank = 0.0, 0.0, 0, []
     with torch.no_grad():

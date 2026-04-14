@@ -3,6 +3,26 @@ from torchvision import transforms
 from torchvision.datasets import CIFAR10
 import random
 import torch
+from torch.utils.data import DataLoader as _TorchDataLoader
+
+
+_ORIGINAL_DATALOADER_INIT = _TorchDataLoader.__init__
+
+
+def _safe_dataloader_init(self, *args, **kwargs):
+    # macOS can be unstable with many workers in notebook kernels.
+    num_workers = kwargs.get("num_workers", 0)
+    if torch.backends.mps.is_available():
+        kwargs["num_workers"] = 0
+        kwargs["pin_memory"] = False
+    else:
+        kwargs["num_workers"] = min(num_workers, 8)
+    return _ORIGINAL_DATALOADER_INIT(self, *args, **kwargs)
+
+
+if getattr(_TorchDataLoader, "_cs231n_safe_patch", False) is False:
+    _TorchDataLoader.__init__ = _safe_dataloader_init
+    _TorchDataLoader._cs231n_safe_patch = True
 
 def compute_train_transform(seed=123456):
     """
@@ -23,7 +43,7 @@ def compute_train_transform(seed=123456):
         # The first operation is filled out for you as an example.
         ##############################################################################
         # Step 1: Randomly resize and crop to 32x32.
-        transforms.RandomResizedCrop(32),
+        transforms.RandomResizedCrop(32, scale=(0.2, 1.0)),
         # Step 2: Horizontally flip the image with probability 0.5
         transforms.RandomHorizontalFlip(p=0.5),
         # Step 3: With a probability of 0.8, apply color jitter (you can use "color_jitter" defined above.
