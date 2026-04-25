@@ -101,7 +101,7 @@ def sim_positive_pairs(out_left, out_right):
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
     pos_pairs = torch.sum(out_left * out_right, dim=1, keepdim=True) / (
-        torch.linalg.norm(out_left, dim=1, keepdim=True) * torch.linalg.norm(out_right, dim=1, keepdim=True)
+        torch.norm(out_left, dim=1, keepdim=True) * torch.norm(out_right, dim=1, keepdim=True)
     )
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -130,7 +130,7 @@ def compute_sim_matrix(out):
     
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    out_norm = out / torch.linalg.norm(out, dim=1, keepdim=True)
+    out_norm = out / torch.norm(out, dim=1, keepdim=True)
     sim_matrix = torch.mm(out_norm, out_norm.t())
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
